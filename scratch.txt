@@ -1,3 +1,0 @@
-input: 
-
-filename, new filename, percentage, new width and height 
