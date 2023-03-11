@@ -2,6 +2,8 @@ from PIL import Image
 import sys
 
 ###UTILS###
+
+
 def resize(image, newName):
     myImg = Image.open(image)
     myImg = myImg.convert('LA')
@@ -12,11 +14,13 @@ def resize(image, newName):
     myImg = myImg.resize((width, height))
     myImg.save(newName)
 
+
 def printImg(imgArr):
     for i in range(len(imgArr)):
         for j in range(len(imgArr[0])):
             print(imgArr[i][j], end="")
         print("")
+
 
 myImg = Image.open(sys.argv[1])
 resize(sys.argv[1], "bwimg.png")
@@ -30,7 +34,7 @@ charArr = []
 for i in range(size[0]):
     asciiArr.append([])
     for j in range(size[1]):
-        pixelVal = newImg.getpixel((i,j))
+        pixelVal = newImg.getpixel((i, j))
         asciiArr[i].append((pixelVal[0] + pixelVal[1] + pixelVal[2])/3)
 print(asciiArr)
 
@@ -71,3 +75,4 @@ print(rotated)
 printImg(rotated)
 
 
+# Quick test to see if branching is working properly
