@@ -104,7 +104,25 @@ def validate_args(args: argparse.Namespace):
         sys.exit(1)
 
 
+def create_new_filename(filename: str) -> str:
+    if filename.startswith(".\\"):
+        filename = filename[2:]
+    filename_no_extension = filename.split(".")[0]
+    extension = '.' + '.'.join(filename.split(".")[1:])
+    copy_number = 1
+    while os.path.exists(filename_no_extension + str(copy_number) + extension):
+        copy_number += 1
+
+    if filename.startswith(".\\"):
+        return ".\\" + filename_no_extension + str(copy_number) + extension
+
+    return filename_no_extension + str(copy_number) + extension
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
     validate_args(args)
+    if args.new_filename == None:
+        args.new_filename = create_new_filename(args.filename)
+    print(args)
