@@ -1,3 +1,4 @@
+
 from PIL import Image
 import sys
 import argparse
@@ -87,3 +88,4 @@ if __name__ == "__main__":
         args.ratio = 1
     ascii_array = asciify_image(args)
     dump_image(ascii_array, args)
+
