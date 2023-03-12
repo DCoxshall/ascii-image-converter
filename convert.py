@@ -1,85 +1,8 @@
-# from PIL import Image
+from PIL import Image
 import sys
 import argparse
 import os
 
-# ###UTILS###
-
-
-# def resize(image_name: str, width: int, height: int, new_name: str = None):
-#     if new_name == None:
-#         new_name = image_name + "(1)"
-#     img = Image.open(image_name)
-#     img = img.resize((width, height), Image.Resampling.LANCZOS)
-#     img.save(new_name)
-
-
-# def resize(image: str, newName: str = None):
-#     myImg = Image.open(image)
-#     myImg = myImg.convert('LA')
-#     width, height = myImg.size
-#     ratio = int(width/200)
-#     width = 200
-#     height = int(height/ratio)
-#     myImg = myImg.resize((width, height))
-#     myImg.save(newName)
-
-
-# def printImg(imgArr):
-#     for i in range(len(imgArr)):
-#         for j in range(len(imgArr[0])):
-#             print(imgArr[i][j], end="")
-#         print("")
-
-
-# myImg = Image.open(sys.argv[1])
-# resize(sys.argv[1], "bwimg.png")
-# newImg = Image.open("bwimg.png")
-# newImg = newImg.convert('RGB')
-# size = newImg.size
-
-# asciiArr = []
-# charArr = []
-
-# for i in range(size[0]):
-#     asciiArr.append([])
-#     for j in range(size[1]):
-#         pixelVal = newImg.getpixel((i, j))
-#         asciiArr[i].append((pixelVal[0] + pixelVal[1] + pixelVal[2])/3)
-
-
-# for i in asciiArr:
-#     newArr = []
-#     for j in i:
-#         x = ""
-#         if j > 229.5:
-#             x = " "
-#         elif j < 229.5 and j > 204:
-#             x = "."
-#         elif j < 204 and j > 178.5:
-#             x = ":"
-#         elif j < 178.5 and j > 153:
-#             x = "-"
-#         elif j < 153 and j > 127.5:
-#             x = "="
-#         elif j < 127.5 and j > 102:
-#             x = "+"
-#         elif j < 102 and j > 76.5:
-#             x = "*"
-#         elif j < 76.5 and j > 51:
-#             x = "#"
-#         elif j < 51 and j > 25.5:
-#             x = "%"
-#         else:
-#             x = "@"
-
-#         newArr.append(x)
-
-#     charArr.append(newArr)
-
-# rotated = list(reversed(list(zip(*charArr))))
-# rotated = list(reversed(list(zip(*rotated))))
-# rotated = list(reversed(list(zip(*rotated))))
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument("filename")
@@ -87,6 +10,7 @@ parser.add_argument("-n", "--new-filename")
 parser.add_argument("-r", "--ratio")
 parser.add_argument("-w", "--width")
 parser.add_argument("-h", "--height")
+parser.add_argument("-s", "--gaps", action=argparse.BooleanOptionalAction)
 
 
 def validate_args(args: argparse.Namespace):
@@ -108,15 +32,49 @@ def create_new_filename(filename: str) -> str:
     if filename.startswith(".\\"):
         filename = filename[2:]
     filename_no_extension = filename.split(".")[0]
-    extension = '.' + '.'.join(filename.split(".")[1:])
-    copy_number = 1
-    while os.path.exists(filename_no_extension + str(copy_number) + extension):
-        copy_number += 1
+    return filename_no_extension + "_ascii.txt"
 
-    if filename.startswith(".\\"):
-        return ".\\" + filename_no_extension + str(copy_number) + extension
 
-    return filename_no_extension + str(copy_number) + extension
+def convert_pixel_to_ascii(pixel: tuple) -> chr:
+    brightness = sum(pixel) / 3
+
+    return " .:-=+*#%@"[round(9 * (brightness / 255))]
+
+
+def asciify_image(args):
+    image = Image.open(args.filename)
+
+    # Resize image if necessary
+    if args.ratio != 1:
+        image = image.resize(
+            (int(image.width * float(args.ratio)), int(image.height * float(args.ratio))))
+
+    if args.width != None:
+        image = image.resize((int(args.width), int(
+            args.height)), resample=Image.LANCZOS)
+
+    image_array = image.load()
+    ascii_array = [['c' for _ in range(image.width)]
+                   for _ in range(image.height)]
+
+    for i in range(image.width):
+        for j in range(image.height):
+
+            char = convert_pixel_to_ascii(image_array[i, j])
+            ascii_array[j][i] = char
+
+    return ascii_array
+
+
+def dump_image(ascii_array, args):
+    output = open(args.new_filename, "w")
+    for row in ascii_array:
+        for pixel in row:
+            output.write(pixel)
+            if args.gaps == True:
+                output.write(" ")
+        output.write("\n")
+    output.close()
 
 
 if __name__ == "__main__":
@@ -125,4 +83,7 @@ if __name__ == "__main__":
     validate_args(args)
     if args.new_filename == None:
         args.new_filename = create_new_filename(args.filename)
-    print(args)
+    if args.ratio == None:
+        args.ratio = 1
+    ascii_array = asciify_image(args)
+    dump_image(ascii_array, args)
