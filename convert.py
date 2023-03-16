@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 from PIL import Image
 import sys
 import argparse
